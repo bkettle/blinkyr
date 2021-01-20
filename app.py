@@ -1,4 +1,4 @@
-from flask import Flask, render_template, url_for, redirect
+from flask import Flask, render_template, url_for, redirect, abort
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField
 from wtforms.validators import DataRequired, URL
@@ -112,10 +112,16 @@ def home():
 @app.route('/p/<page_id>/<object_id>')
 def show_page(page_id, object_id=None):
     print("rendering page", page_id, "and object", object_id, flush=True)
-    page = Page.select().where(Page.pid == page_id).get()
+    try:
+        page = Page.select().where(Page.pid == page_id).get()
+    except DoesNotExist:
+        abort(404) # raise a 404 error if this is missing
     flash_obj = None
     if object_id:
-        flash_obj = page.objects.where(FlashObject.oid == object_id).get()
+        try:
+            flash_obj = page.objects.where(FlashObject.oid == object_id).get()
+        except DoesNotExist:
+            abort(404) # if object doesn't exist, raise 404
     return render_template('page.html', page=page, flash_obj=flash_obj)
 
 if __name__ == "__main__":
