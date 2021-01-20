@@ -3,7 +3,6 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField
 from wtforms.validators import DataRequired, URL
 from peewee import *
-from playhouse.db_url import connect
 import boto3
 import math
 import base64
@@ -11,9 +10,9 @@ import datetime
 import requests
 import os
 
+from models import *
 from find_swf import find_swf
 
-db = connect(os.environ['DATABASE_URL'])
 app = Flask(__name__)
 
 app.config['SECRET_KEY'] = os.environ['FORMS_SECRET_KEY']
@@ -62,31 +61,6 @@ def url_to_pid(url: str):
 class CreatePageForm(FlaskForm):
     url = StringField("URL: ", validators=[URL()])
 
-# db models
-class BaseModel(Model):
-    class Meta:
-        database = db
-
-class Page(BaseModel):
-    source_url = CharField(unique=True)
-    pid = IntegerField(unique=True)
-    timestamp = TimestampField(default=datetime.datetime.now)
-    title = CharField(unique=True)
-
-class FlashObject(BaseModel):
-    page = ForeignKeyField(Page, backref='objects')
-    oid = IntegerField()
-    swf_url = CharField()
-    title = CharField()
-
-
-def create_tables(recreate=False):
-    tables = [Page, FlashObject]
-    with db:
-        if recreate:
-            print("Dropping Page Table", flush=True)
-            db.drop_tables(tables)
-        db.create_tables(tables)
 
 @app.route('/', methods=['GET', 'POST'])
 def home():
@@ -145,5 +119,4 @@ def show_page(page_id, object_id=None):
     return render_template('page.html', page=page, flash_obj=flash_obj)
 
 if __name__ == "__main__":
-    create_tables(False)
     app.run(host="0.0.0.0", debug=True)
