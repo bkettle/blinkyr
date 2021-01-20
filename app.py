@@ -3,6 +3,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField
 from wtforms.validators import DataRequired, URL
 from peewee import *
+from playhouse.db_url import connect
 import boto3
 import math
 import base64
@@ -12,15 +13,16 @@ import os
 
 from find_swf import find_swf
 
-db = PostgresqlDatabase('postgres', user='postgres', password='postgres', host='db', port=5432)
+db = connect(os.environ['DATABASE_URL'])
 app = Flask(__name__)
+
 app.config['SECRET_KEY'] = os.environ['FORMS_SECRET_KEY']
 
 S3_ENDPOINT = os.environ['S3_ENDPOINT']
 S3_ACCESS_KEY = os.environ['S3_ACCESS_KEY']
 S3_SECRET_KEY = os.environ['S3_SECRET_KEY']
 S3_BUCKET_NAME = os.environ['S3_BUCKET_NAME']
-URL_PREFIX = CONTENT_URL_PREFIX
+URL_PREFIX = os.environ['CONTENT_URL_PREFIX']
 
 # S3 Setup
 s3 = boto3.resource('s3',
@@ -143,5 +145,5 @@ def show_page(page_id, object_id=None):
     return render_template('page.html', page=page, flash_obj=flash_obj)
 
 if __name__ == "__main__":
-    create_tables(True)
+    create_tables(False)
     app.run(host="0.0.0.0", debug=True)
