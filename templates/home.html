@@ -1,0 +1,16 @@
+<!DOCTYPE>
+<head>
+</head>
+<body>
+	<h1>Hello</h1>
+	<p>Welcome to blinkyr. Enter a URL to a site with Flash content below to create a page. This page will allow you to view the Flash contents using the <a href="https://ruffle.rs">ruffle</a> emulator.</p>
+	<form method=post>
+		{{ form.csrf_token }}
+		{{ form.url }}
+		{% for error in form.url.errors %}
+			{{ error }}  
+		{% endfor %}
+		<input type="submit" value="Go">
+	</form>
+</body>
+
